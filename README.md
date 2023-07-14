@@ -6,4 +6,3 @@
 - mybatis-plus 3.4.2
 - maven  3.6.0
 - mysql 5.7.28
-- 
