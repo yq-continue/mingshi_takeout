@@ -5,6 +5,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author yang
@@ -14,6 +15,7 @@ import org.springframework.boot.web.servlet.ServletComponentScan;
 @SpringBootApplication(scanBasePackages = "com.atmingshi")
 @MapperScan("com.atmingshi.mapper")
 @ServletComponentScan//原生 servlet 注入
+@EnableTransactionManagement(proxyTargetClass = true)//开启 Transactional 注解
 public class MingshiTakeOut {
     public static void main(String[] args) {
         SpringApplication.run(MingshiTakeOut.class,args);

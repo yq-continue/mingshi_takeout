@@ -23,6 +23,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     @Autowired
     private SetmealMapper setmealMapper;
 
+    @Autowired
+    private CategoryMapper categoryMapper;
+
     @Override
     public void remove(Long id) {
         //1.查询此分类中是否存在套餐
@@ -43,7 +46,10 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         super.removeById(id);
     }
 
-
+    @Override
+    public String queryCategoryName(Long id) {
+        return categoryMapper.queryName(id);
+    }
 
 
 }

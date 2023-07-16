@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import sun.rmi.runtime.Log;
 
+import java.util.List;
+
 /**
  * @author yang
  * @create 2023-07-13 17:23
@@ -70,6 +72,24 @@ public class CategoryController {
         log.info("修改套餐，修改值为{}",category);
         service.updateById(category);
         return R.success("修改套餐成功");
+    }
+
+    /**
+     * 查询菜品分类，回显给前端   （添加菜品页面）
+     * @param category
+     * @return
+     */
+    @GetMapping("list")
+    public R<List<Category>> list(Category category){
+        if (category.getType() == null){
+            return R.error("type 值为 null");
+        }
+        //查询数据库中菜品的数据
+        LambdaQueryWrapper<Category> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Category::getType,category.getType());
+        wrapper.orderByAsc(Category::getSort).orderByDesc(Category::getCreateTime);
+        List<Category> list = service.list(wrapper);
+        return R.success(list);
     }
 
 }

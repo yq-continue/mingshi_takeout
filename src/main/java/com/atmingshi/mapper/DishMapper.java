@@ -16,5 +16,6 @@ public interface DishMapper extends BaseMapper<Dish> {
 
     public Long count(@Param("id")Long id);
 
+    public String queryName(@Param("id")Long id);
 
 }

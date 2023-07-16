@@ -12,4 +12,10 @@ public interface CategoryService extends IService<Category> {
 
     public void remove(Long id);
 
+    /**
+     * 用于菜品管理中查询菜品分类名称
+     * @param id
+     */
+    public String queryCategoryName(Long id);
+
 }

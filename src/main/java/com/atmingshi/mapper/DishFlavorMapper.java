@@ -1,6 +1,6 @@
 package com.atmingshi.mapper;
 
-import com.atmingshi.pojo.Category;
+import com.atmingshi.pojo.DishFlavor;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -8,12 +8,12 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author yang
- * @create 2023-07-13 17:19
+ * @create 2023-07-14 17:24
  */
 @Mapper
 @Repository
-public interface CategoryMapper extends BaseMapper<Category> {
+public interface DishFlavorMapper extends BaseMapper<DishFlavor> {
 
-    public String queryName(@Param("id") Long id);
+    public int deleteDishflavorOfdishId(@Param("dishId") Long dishId);
 
 }
