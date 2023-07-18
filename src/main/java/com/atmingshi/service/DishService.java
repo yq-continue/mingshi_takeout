@@ -19,4 +19,6 @@ public interface DishService extends IService<Dish> {
 
     public void deleteWithFlavor(String ids);
 
+    public String getImage(Long id);
+
 }

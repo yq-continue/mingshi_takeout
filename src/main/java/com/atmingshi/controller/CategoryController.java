@@ -81,8 +81,12 @@ public class CategoryController {
      */
     @GetMapping("list")
     public R<List<Category>> list(Category category){
+        //若等于 null 则是用户界面发起的请求，目的是将所有套餐和分类展示出来
         if (category.getType() == null){
-            return R.error("type 值为 null");
+            LambdaQueryWrapper<Category> wrapperOfUser = new LambdaQueryWrapper<>();
+            wrapperOfUser.orderByAsc(Category::getSort);
+            List<Category> list = service.list(wrapperOfUser);
+            return R.success(list);
         }
         //查询数据库中菜品的数据
         LambdaQueryWrapper<Category> wrapper = new LambdaQueryWrapper<>();

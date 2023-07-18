@@ -7,4 +7,10 @@
     <select resultType="_long" id="count">
         select count(*) from dish where `category_id` = #{id}
     </select>
+
+
+<!--    public String queryImage(@Param("id")Long id);-->
+    <select id="queryImage" resultType="string">
+        select image from dish where id = #{id}
+    </select>
 </mapper>

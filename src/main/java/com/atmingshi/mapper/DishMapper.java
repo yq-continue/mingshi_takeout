@@ -18,4 +18,6 @@ public interface DishMapper extends BaseMapper<Dish> {
 
     public String queryName(@Param("id")Long id);
 
+    public String queryImage(@Param("id")Long id);
+
 }

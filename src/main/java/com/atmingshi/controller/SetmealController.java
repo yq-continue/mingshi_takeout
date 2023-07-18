@@ -1,11 +1,13 @@
 package com.atmingshi.controller;
 
 import com.atmingshi.common.R;
+import com.atmingshi.dto.SetmealDishDto;
 import com.atmingshi.dto.SetmealDto;
 import com.atmingshi.pojo.Dish;
 import com.atmingshi.pojo.Setmeal;
 import com.atmingshi.pojo.SetmealDish;
 import com.atmingshi.service.CategoryService;
+import com.atmingshi.service.DishService;
 import com.atmingshi.service.SetmealDishService;
 import com.atmingshi.service.SetmealService;
 import com.atmingshi.utils.TransferId;
@@ -18,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.text.WrappedPlainView;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +43,9 @@ public class SetmealController {
 
     @Autowired
     private SetmealDishService setmealDishService;
+
+    @Autowired
+    private DishService dishService;
 
     /**
      * 套餐分页     需要查询套餐分类
@@ -155,5 +161,43 @@ public class SetmealController {
         setmealService.update(wrapper);
         return R.success("修改成功");
     }
+
+    /**
+     * 用户选购页面的套餐展示
+     * @param categoryId
+     * @param status
+     * @return
+     */
+    @GetMapping("/list")
+    public R<List<Setmeal>> getSetmeal(Long categoryId,int status){
+        LambdaQueryWrapper<Setmeal> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Setmeal::getCategoryId,categoryId);
+        wrapper.eq(Setmeal::getStatus,status);
+        List<Setmeal> list = setmealService.list(wrapper);
+        return R.success(list);
+    }
+
+    @GetMapping("/dish/{setmealId}")
+    public R<List<SetmealDishDto>> getSetmealDish(@PathVariable Long setmealId){
+        // 通过 setmealId 查询套餐下所包含的菜品
+        LambdaQueryWrapper<SetmealDish> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SetmealDish::getSetmealId,setmealId);
+        List<SetmealDish> list = setmealDishService.list(wrapper);
+        // 将 setmealdish 对象转换为 setmealdishDto 对象并添加图片信息
+        List<SetmealDishDto> dtoOfList = new ArrayList<>();
+        for (int i = 0;i < list.size();i++){
+            SetmealDish setmealDish = list.get(i);
+            SetmealDishDto setmealDishDto = new SetmealDishDto();
+            // 查询出 setmealdish 的图片信息
+            String image = dishService.getImage(setmealDish.getDishId());
+            BeanUtils.copyProperties(setmealDish,setmealDishDto);
+            // 添加图片信息
+            setmealDishDto.setImage(image);
+            // 将 setmealdto 对象添加到数组
+            dtoOfList.add(setmealDishDto);
+        }
+        return R.success(dtoOfList);
+    }
+
 
 }

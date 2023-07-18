@@ -31,6 +31,11 @@ public class GlocalExceptionHandle {
         return R.error("未知错误，请稍后再试");
     }
 
+    /**
+     * 自定义异常处理器
+     * @param exc
+     * @return
+     */
     @ExceptionHandler({CustomException.class})
     public R<String> customException(CustomException exc){
         //1.获取到异常信息

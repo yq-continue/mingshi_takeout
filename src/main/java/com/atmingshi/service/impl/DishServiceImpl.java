@@ -28,6 +28,9 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
     @Autowired
     private DishFlavorService dishService;
 
+    @Autowired
+    private DishMapper dishMapper;
+
     @Override
     @Transactional
     public void saveWithFlavor(DishDto dishDto) {
@@ -93,6 +96,17 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
             //删除菜品信息
             this.removeById(id);
         }
+    }
+
+    /**
+     * 根据 id 查询 dish 的图片信息
+     * @param id
+     * @return
+     */
+    @Override
+    public String getImage(Long id) {
+        String image = dishMapper.queryImage(id);
+        return image;
     }
 
 

@@ -36,6 +36,9 @@ public class DishController {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private DishFlavorService dishFlavorService;
+
     /**
      * 新增菜品
      * @param dishDto
@@ -135,13 +138,40 @@ public class DishController {
         return R.success("修改成功");
     }
 
+
+
     /**
      * 根据传入的分类信息 查询分类中包含的菜品
      * 在套餐管理中的添加套餐中使用
+     * 在用户前台页面使用展示 选择规格与菜品
      * @param categoryId  种类id
      * @return
      */
     @GetMapping("/list")
+    public R<List<DishDto>> getDishByCategory(Long categoryId,String name){
+        //查询数据
+        LambdaQueryWrapper<Dish> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(categoryId != null,Dish::getCategoryId,categoryId);
+        wrapper.like(name != null,Dish::getName,name);
+        List<Dish> dishList = dishService.list(wrapper);
+        //将数据迁移到 DishDto 对象中
+        List<DishDto> dishDtoList = new ArrayList<>();
+        for (int i = 0;i < dishList.size();i++){
+            //根据 DishId 查询出对应的 DishFlavor 信息
+            Dish dish = dishList.get(i);
+            DishDto dishDto = new DishDto();
+            LambdaQueryWrapper<DishFlavor> dishFlavorWrapper = new LambdaQueryWrapper<>();
+            dishFlavorWrapper.eq(DishFlavor::getDishId,dish.getId());
+            List<DishFlavor> list = dishFlavorService.list(dishFlavorWrapper);
+            BeanUtils.copyProperties(dish,dishDto);
+            dishDto.setFlavors(list);
+            dishDtoList.add(dishDto);
+        }
+        //将数据返回至前端
+        return R.success(dishDtoList);
+
+    }
+    /*@GetMapping("/list")
     public R<List<Dish>> getDishByCategory(Long categoryId,String name){
         //查询数据
         LambdaQueryWrapper<Dish> wrapper = new LambdaQueryWrapper<>();
@@ -150,5 +180,9 @@ public class DishController {
         List<Dish> dishList = dishService.list(wrapper);
         //将数据返回至前端
         return R.success(dishList);
-    }
+    }*/
+
+
 }
+
+
