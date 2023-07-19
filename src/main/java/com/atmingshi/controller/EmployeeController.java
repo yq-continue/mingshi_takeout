@@ -2,6 +2,7 @@ package com.atmingshi.controller;
 
 
 import com.atmingshi.common.R;
+import com.atmingshi.exception.PermissionsException;
 import com.atmingshi.pojo.Employee;
 import com.atmingshi.service.impl.EmployeeServiceImpl;
 import com.atmingshi.utils.TransferId;
@@ -37,6 +38,10 @@ public class EmployeeController {
      */
     @PostMapping("/login")
     public R login(HttpServletRequest request, @RequestBody Employee employee){
+        //0.判断前台用户是否登录
+        if (request.getSession().getAttribute("user") != null){
+            throw new PermissionsException("请先注销前台用户账号再次尝试");
+        }
         //1.将获取的密码使用 MD5 加密
         String password = employee.getPassword();
         password = DigestUtils.md5DigestAsHex(password.getBytes());

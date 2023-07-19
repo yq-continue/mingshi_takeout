@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.annotation.WebFilter;
 import java.sql.SQLIntegrityConstraintViolationException;
 
 /**
@@ -42,5 +43,18 @@ public class GlocalExceptionHandle {
         String msg = exc.getMessage();
         return R.error(msg);
     }
+
+    /**
+     * 自定义异常处理器，用于权限控制
+     * @param exc
+     * @return
+     */
+    @ExceptionHandler({PermissionsException.class})
+    public R<String> permissionsException(PermissionsException exc){
+        //1.获取到异常信息
+        String msg = exc.getMessage();
+        return R.error(msg);
+    }
+
 
 }

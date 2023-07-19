@@ -2,6 +2,7 @@ package com.atmingshi.filter;
 
 import com.alibaba.fastjson.JSON;
 import com.atmingshi.common.R;
+import com.atmingshi.exception.PermissionsException;
 import com.atmingshi.utils.TransferId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.AntPathMatcher;
@@ -38,8 +39,8 @@ public class LoginCheckFilter implements Filter{
                 "/backend/**",
                 "/front/**",
                 "/common/**",
-                "/user/login",
-                "/user/sendMsg"
+                "/user/login",//前端用户登录
+                "/user/sendMsg"//前端用户发送二维码
         };
 
 

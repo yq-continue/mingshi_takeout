@@ -8,6 +8,7 @@ import com.atmingshi.pojo.Orders;
 import com.atmingshi.service.OrderDetailService;
 import com.atmingshi.service.OrderService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -16,8 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author yang
@@ -45,7 +48,13 @@ public class OrderController {
         return R.success("支付成功");
     }
 
-
+    /**
+     * 用户页面订单展示
+     * @param page
+     * @param pageSize
+     * @param session
+     * @return
+     */
     @GetMapping("userPage")
     @Transactional
     public R<Page<OrdersDto>> getUserOrder(int page, int pageSize, HttpSession session){
@@ -78,6 +87,41 @@ public class OrderController {
         pageOfDto.setRecords(listOfDto);
         //返回数据
         return R.success(pageOfDto);
+    }
+
+    /**
+     * 后台订单明细界面展示 (缺点：无菜品展示 因为不会前端暂时放弃)
+     * @return
+     */
+    @GetMapping("/page")
+    public R<Page<Orders>> pageOfOrderDetail(Integer page, Integer pageSize, Long number, String beginTime,String endTime){
+        // 查询数据
+        Page<Orders> pageOfOrder = new Page<>(page,pageSize);
+        LambdaQueryWrapper<Orders> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(number != null,Orders::getNumber,number);
+        wrapper.ge(beginTime != null,Orders::getCheckoutTime,beginTime);
+        wrapper.le(endTime != null,Orders::getCheckoutTime,endTime);
+        wrapper.orderByAsc(Orders::getStatus).orderByAsc(Orders::getCheckoutTime);
+        orderService.page(pageOfOrder,wrapper);
+        // 返回数据
+        return R.success(pageOfOrder);
+    }
+
+    /**
+     * 修改订单状态
+     * @return
+     */
+    @PutMapping
+    public R<String> updateStatus(@RequestBody Map map){
+        // 获取传输进来的订单号与状态信息
+        Integer status = (Integer)map.get("status");
+        Long number = Long.parseLong((String) map.get("id"));
+        // 修改状态
+        LambdaUpdateWrapper<Orders> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(number != null, Orders::getNumber,number);
+        wrapper.set(status != null,Orders::getStatus,status);
+        orderService.update(wrapper);
+        return R.success("修改成功");
     }
 
 }

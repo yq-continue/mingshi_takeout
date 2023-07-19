@@ -1,6 +1,7 @@
 package com.atmingshi.controller;
 
 import com.atmingshi.common.R;
+import com.atmingshi.exception.PermissionsException;
 import com.atmingshi.pojo.User;
 import com.atmingshi.service.UserService;
 import com.atmingshi.utils.SMSUtils;
@@ -61,6 +62,10 @@ public class UserController {
      */
     @PostMapping("/login")
     public R<User> login(@RequestBody Map map, HttpSession session){
+        // 判断后台用户是否登录
+        if (session.getAttribute("userId") != null){
+            throw new PermissionsException("请先注销后台管理用户再次尝试登录");
+        }
         // 获取用户登录信息
         String phone = map.get("phone").toString();
         String code = map.get("code").toString();
