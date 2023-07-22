@@ -9,6 +9,12 @@ spring:
       url: jdbc:mysql://192.168.1.200:3306/mingshi_takeout?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
       username: root
       password: abc123
+  #springboot 整合 redis
+  redis:
+    host: 192.168.1.200
+    port: 6379
+    password: 123456
+    database: 0
 mybatis-plus:
   configuration:
     #驼峰命映射

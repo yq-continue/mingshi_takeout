@@ -4,6 +4,8 @@ package com.atmingshi.dto;
 import com.atmingshi.pojo.Dish;
 import com.atmingshi.pojo.DishFlavor;
 import lombok.Data;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 

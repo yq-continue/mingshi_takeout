@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,9 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
 
     @Autowired
     private DishMapper dishMapper;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     @Transactional
@@ -88,9 +92,16 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
     public void deleteWithFlavor(String ids) {
         // 获取所传输进来的 dishId
         String[] dishId = ids.split(",");
+        // 拼装 key
+        String key = null;
+        Dish dish = null;
         for (int i = 0;i < dishId.length;i++){
             // 将字符串转换为包装类
             long id = Long.parseLong(dishId[i]);
+            // 删除 redis 中对应的缓存信息
+            dish = this.getById(id);
+            key = "dish_" + dish.getCategoryId() + "_1";
+            redisTemplate.delete(key);
             //删除 dishId 所对应的口味信息
             dishService.deleteFlavorOfDish(id);
             //删除菜品信息

@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.sun.xml.internal.ws.resources.HttpserverMessages;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author yang
@@ -30,14 +32,16 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     /**
      * 验证码发送
      * @param user
-     * @param session
      * @return
      */
     @PostMapping("/sendMsg")
-    public R<String> getMessage(@RequestBody User user, HttpSession session){
+    public R<String> getMessage(@RequestBody User user){
         //获取手机号
         String phone = user.getPhone();
         if (phone != null){
@@ -45,10 +49,13 @@ public class UserController {
             String code = ValidateCodeUtils.generateValidateCode(4).toString();
             // 使用 aliyun 发送短信
             log.info("验证码为{}",code);
-//            SMSUtils.sendMessage("签名","模板名","电话号码",code);
+//            SMSUtils.sendMessage("民师外卖","",phone,code);
 
             // 将验证码存入 session 域
-            session.setAttribute(phone,code);
+//            session.setAttribute(phone,code);
+
+            // 将验证码缓存到 redis 数据库中，设置过期时间为 5 分钟
+            redisTemplate.opsForValue().set(phone,code,5,TimeUnit.MINUTES);
             return R.success("获取验证码成功");
         }
         return R.error("获取验证码失败");
@@ -70,8 +77,12 @@ public class UserController {
         String phone = map.get("phone").toString();
         String code = map.get("code").toString();
         // 比对验证码是否正确
-        String codeInSession = session.getAttribute(phone).toString();
-        if (codeInSession != null && codeInSession.equals(code)){
+//        String codeInSession = session.getAttribute(phone).toString();
+
+        // 在 redis 中获取验证码
+        String codeInRedis = (String)redisTemplate.opsForValue().get(phone);
+
+        if (codeInRedis != null && codeInRedis.equals(code)){
             // 查询数据库中是否存在该用户
             LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(User::getPhone,phone);
@@ -84,6 +95,9 @@ public class UserController {
                 userService.save(user);
             }
             session.setAttribute("user",user.getId());
+            // 登录成功，将 redis 中的验证码删除
+            redisTemplate.delete(phone);
+
             return R.success(user);
         }
         return R.error("登录失败，验证码错误");

@@ -14,6 +14,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.util.BeanUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,9 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
 
     @Autowired
     private SetmealDishService service;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     @Transactional
@@ -80,6 +84,18 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
             idsOfLong[i] = id;
         }
         List<Long> list = Arrays.asList(idsOfLong);
+
+
+        // 删除 redis 中对应的数据
+        String key = null;
+        Setmeal setmeal = null;
+        for (int i = 0;i < idsOfLong.length;i++){
+            setmeal = this.getById(idsOfLong[i]);
+            key = "dish_" + setmeal.getCategoryId() + "_1";
+            redisTemplate.delete(key);
+        }
+
+
         // 删除 setmealdish 表中的数据
         LambdaQueryWrapper<SetmealDish> wrapperOfSetmealDish = new LambdaQueryWrapper<>();
         wrapperOfSetmealDish.in(list != null,SetmealDish::getSetmealId,list);

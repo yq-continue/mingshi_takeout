@@ -17,6 +17,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author yang
@@ -46,6 +48,9 @@ public class SetmealController {
 
     @Autowired
     private DishService dishService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 套餐分页     需要查询套餐分类
@@ -89,6 +94,9 @@ public class SetmealController {
     @PostMapping
     public R<String> saveSetmeal(@RequestBody SetmealDto setmealDto){
         setmealService.saveSetmealWithSetmealDish(setmealDto);
+        // 删除 redis 缓存中的数据
+        String key = "dish_" + setmealDto.getCategoryId() + "_1";
+        redisTemplate.delete(key);
         return R.success("添加成功");
     }
 
@@ -123,6 +131,9 @@ public class SetmealController {
     @PutMapping
     public R<String> updateSetmeal(@RequestBody SetmealDto setmealDto){
         setmealService.updateSetmealWithSetmealDish(setmealDto);
+        // 删除 redis 中对应的缓存信息
+        String key = "dish_" + setmealDto.getCategoryId() + "_1";
+        redisTemplate.delete(key);
         return R.success("修改成功");
     }
 
@@ -159,6 +170,15 @@ public class SetmealController {
         wrapper.set(Setmeal::getUpdateTime, LocalDateTime.now());
         wrapper.in(list != null,Setmeal::getId,list);
         setmealService.update(wrapper);
+        // 删除 redis 中对应的缓存数据
+        String key = null;
+        Setmeal setmeal = null;
+        for (int i = 0;i < idsOfLong.length;i++){
+            setmeal = setmealService.getById(idsOfLong[i]);
+            key = "dish_" + setmeal.getCategoryId() + "_1";
+            redisTemplate.delete(key);
+        }
+
         return R.success("修改成功");
     }
 
@@ -170,10 +190,26 @@ public class SetmealController {
      */
     @GetMapping("/list")
     public R<List<Setmeal>> getSetmeal(Long categoryId,int status){
-        LambdaQueryWrapper<Setmeal> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Setmeal::getCategoryId,categoryId);
-        wrapper.eq(Setmeal::getStatus,status);
-        List<Setmeal> list = setmealService.list(wrapper);
+        // 拼装存进 redis 中的 key
+        String key = "dish_" + categoryId + "_" + status;
+        // 查询 redis中是否存在
+        List<Setmeal> list = (List<Setmeal>) redisTemplate.opsForValue().get(key);
+        if (list != null){
+            return R.success(list);
+        }
+        synchronized (SetmealController.class){
+            // 查询 redis中是否存在
+            list = (List<Setmeal>) redisTemplate.opsForValue().get(key);
+            if (list != null){
+                return R.success(list);
+            }
+            LambdaQueryWrapper<Setmeal> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(Setmeal::getCategoryId,categoryId);
+            wrapper.eq(Setmeal::getStatus,status);
+            list = setmealService.list(wrapper);
+        }
+        //将数据存到 redis 中，方便下次查询
+        redisTemplate.opsForValue().set(key,list,5, TimeUnit.DAYS);
         return R.success(list);
     }
 
